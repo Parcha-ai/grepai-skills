@@ -50,3 +50,6 @@ grep -oP '^\| `\K[a-z0-9-]+(?=`)' resources/experts.md | sort -u > /tmp/local.tx
 diff /tmp/live.txt /tmp/local.txt
 # No output = in sync. Output = drift; regenerate this file.
 ```
+
+<!-- DRIFT DETECTED 2026-09-20T06:35:40Z -->
+<!-- See workflow run: https://github.com/Parcha-ai/grepai-skills/actions/runs/35494630354 -->
