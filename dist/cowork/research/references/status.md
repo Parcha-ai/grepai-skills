@@ -1,42 +1,14 @@
-# GREP Status
+<!-- Generated from skills/grep-status/SKILL.md; do not edit. -->
 
-Check authentication status, view recent research jobs, or check on a specific job.
+# Account and run status
 
-## Check authentication
+Read [platform setup and API contract](../resources/platform.md) before the first platform call. Resolve `SCRIPTS_DIR` as described there. Prefer the connected Grep MCP tools when they expose the needed operation; the CLI is the REST fallback.
 
 ```bash
-SCRIPTS_DIR="${CLAUDE_SKILL_DIR}/scripts"
 node "$SCRIPTS_DIR/auth.js" status
-```
-
-Reports whether the user is authenticated and session health.
-
-If not authenticated or session expired: **automatically run the login workflow** from `${CLAUDE_SKILL_DIR}/references/login.md` — don't just suggest it. Then continue with the status check.
-
-## Check a specific job
-
-If the user provides a job ID:
-
-```bash
-SCRIPTS_DIR="${CLAUDE_SKILL_DIR}/scripts"
-node "$SCRIPTS_DIR/grep-api.js" status <job_id>
-```
-
-If the job is completed, also fetch and present the full report:
-
-```bash
-node "$SCRIPTS_DIR/grep-api.js" result <job_id>
-```
-
-## List recent jobs
-
-```bash
-SCRIPTS_DIR="${CLAUDE_SKILL_DIR}/scripts"
 node "$SCRIPTS_DIR/grep-api.js" jobs
+node "$SCRIPTS_DIR/grep-api.js" status RUN_ID
 ```
+For an MCP connection, use `quota_get`, `billing_usage_get`, and `research_list` where available. Account status should reflect the selected deployment and credentials. The legacy auth status command checks its saved session, not the MCP connection or environment API key.
 
-## Present status clearly
-
-- **Authenticated + no job query:** Show auth status and recent jobs summary
-- **Checking a specific job:** Report status, and present full results if completed
-- **Not authenticated:** Run the login flow automatically, then show status
+Summarize actual status, quota/usage if returned, and relevant running work. A missing local session does not mean an authenticated MCP connection is logged out. Do not start test runs to check status.

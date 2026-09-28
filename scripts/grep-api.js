@@ -31,7 +31,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const GREP_API_BASE = process.env.GREP_API_BASE || 'https://api.grep.ai';
+const GREP_API_BASE = (process.env.GREP_API_BASE || 'https://api.grep.ai').replace(/\/$/, '');
 const SESSION_FILE = path.join(process.env.HOME || process.env.USERPROFILE, '.grep', 'session.json');
 const DESCOPE_PROJECT_ID = 'P35S8vZ7BYoDSOJVaYbIDRZObJq6';
 const DESCOPE_BASE_URL = 'https://api.descope.com';
@@ -48,6 +48,7 @@ const GREP_UI_BASE = process.env.GREP_UI_BASE
 // takes effect without restarting.
 function basePath() {
   if (process.env.GREP_API_BASE_PATH) return process.env.GREP_API_BASE_PATH;
+  if (process.env.GREP_API_KEY || process.env.GREP_ACCESS_TOKEN) return '/api/v2';
   const session = loadSession();
   return session && session.apiKey ? '/api/v2' : '/api/v1';
 }
@@ -61,7 +62,7 @@ function isV1() {
 // `report.markdown` and has no such param.
 function jobDetailPath(jobIdOrSlug) {
   const qs = isV1() ? '?include_status_messages=true' : '';
-  return `${basePath()}/research/${jobIdOrSlug}${qs}`;
+  return `${basePath()}/${isV1() ? 'research' : 'run'}/${encodeURIComponent(jobIdOrSlug)}${qs}`;
 }
 
 // Guard for commands that only exist on the v2 surface.
@@ -136,6 +137,8 @@ async function refreshSession(session) {
 // Get a valid session token, refreshing if needed. Called on EVERY API request
 // so long-running polls survive JWT expiration mid-flight.
 async function getValidToken() {
+  if (process.env.GREP_API_KEY) return process.env.GREP_API_KEY;
+  if (process.env.GREP_ACCESS_TOKEN) return process.env.GREP_ACCESS_TOKEN;
   let session = loadSession();
   if (!session) {
     console.error('Not authenticated. Run: grep-login');
@@ -190,10 +193,11 @@ async function handle402(res) {
 }
 
 // API call helper — fetches a fresh (possibly refreshed) token on every call.
-async function api(method, endpoint, body) {
+async function api(method, endpoint, body, idempotencyKey) {
   const headers = await buildAuthHeaders();
   headers['Content-Type'] = 'application/json';
-  const opts = { method, headers };
+  if (idempotencyKey) headers['Idempotency-Key'] = idempotencyKey;
+  const opts = { method, headers, signal: AbortSignal.timeout(60000) };
   if (body) opts.body = JSON.stringify(body);
 
   const res = await fetch(`${GREP_API_BASE}${endpoint}`, opts);
@@ -218,11 +222,14 @@ function buildSubmitBody(query, options = {}) {
     effort: options.effort || DEPTH_TO_EFFORT[options.depth] || 'medium',
   };
   if (options.expertId)              body.expert_id = options.expertId;
-  if (options.outputType)            body.output_type = options.outputType;
+  if (options.outputType) {
+    if (isV1()) body.output_type = options.outputType;
+    else { body.question = `Create a ${options.outputType}: ${query}`; body.effort = 'build'; }
+  }
   if (options.context)               body.context = options.context;
   if (options.responseLanguage)      body.response_language = options.responseLanguage;
   if (options.jsonSchema)            body.json_schema = options.jsonSchema;
-  if (options.referenceJobs?.length) body.reference_jobs = options.referenceJobs;
+  if (options.referenceJobs?.length) body[isV1() ? 'reference_jobs' : 'referenceJobs'] = options.referenceJobs;
   if (options.attachmentIds?.length) body.attachment_ids = options.attachmentIds;
   if (options.renderRichReport)      body.render_rich_report = true;
   if (options.webhookUrl)            body.webhook_url = options.webhookUrl;
@@ -231,7 +238,7 @@ function buildSubmitBody(query, options = {}) {
 
 async function submitResearch(query, options = {}) {
   const body = buildSubmitBody(query, options);
-  const result = await api('POST', `${basePath()}/research`, body);
+  const result = await api('POST', `${basePath()}/${isV1() ? 'research' : 'run'}`, body, options.idempotencyKey);
   console.log(JSON.stringify(result, null, 2));
 }
 
@@ -245,7 +252,7 @@ async function getResult(jobIdOrSlug, options = {}) {
   // as runResearch's polling loop — bounded wall clock, 15s interval after
   // an initial 20s wait, exits 0 with the report on success, 1 on failure,
   // 2 on timeout. Use --no-wait to get the legacy single-GET behaviour.
-  const maxWaitSeconds = Number(options.maxWaitSeconds || 540);
+  const maxWaitSeconds = Math.min(540, Math.max(1, Number(options.maxWaitSeconds) || 540));
   const initialWaitMs = options.noWait ? 0 : 20_000;
   const pollIntervalMs = 15_000;
 
@@ -312,7 +319,7 @@ async function getResult(jobIdOrSlug, options = {}) {
       return;
     }
 
-    if (status === 'failed') {
+    if (['failed', 'blocked', 'cancelled', 'canceled'].includes(status)) {
       console.error(`[result] Job failed: ${result.error || 'unknown error'}`);
       console.error(JSON.stringify(result, null, 2));
       process.exit(1);
@@ -337,7 +344,7 @@ async function getResult(jobIdOrSlug, options = {}) {
 }
 
 async function listJobs() {
-  const result = await api('GET', `${basePath()}/research`);
+  const result = await api('GET', `${basePath()}/${isV1() ? 'research' : 'run'}`);
   console.log(JSON.stringify(result, null, 2));
 }
 
@@ -398,7 +405,7 @@ async function continueJob(jobIdOrSlug, question, opts = {}) {
   const body = { question };
   if (opts.effort)                   body.effort = opts.effort;
   if (opts.context)                  body.context = opts.context;
-  if (opts.outputType)               body.output_type = opts.outputType;
+  if (opts.outputType) { body.question = `Create a ${opts.outputType}: ${question}`; body.effort = 'build'; }
   if (opts.responseLanguage)         body.response_language = opts.responseLanguage;
   if (opts.jsonSchema)               body.json_schema = opts.jsonSchema;
   if (opts.attachmentIds?.length)    body.attachment_ids = opts.attachmentIds;
@@ -439,16 +446,16 @@ async function deleteAttachment(id) {
 }
 
 async function listExperts() {
-  // Public, no auth. v2 mounts this at /experts, v1 at /research/experts.
-  const expertsPath = isV1() ? `${basePath()}/research/experts` : `${basePath()}/experts`;
+  // Public agent discovery is independent of the caller's saved auth mode.
+  const expertsPath = '/api/v2/agents';
   const res = await fetch(`${GREP_API_BASE}${expertsPath}`);
   if (!res.ok) throw new Error(`API error ${res.status}: ${await res.text()}`);
   console.log(JSON.stringify(await res.json(), null, 2));
 }
 
 async function getDiscovery() {
-  // v2 publishes its contract via /openapi.json — public, no auth.
-  const res = await fetch(`${GREP_API_BASE}/openapi.json`);
+  // Public v2 contract; no auth required.
+  const res = await fetch(`${GREP_API_BASE}/api/v2/openapi.json`);
   if (!res.ok) throw new Error(`API error ${res.status}: ${await res.text()}`);
   console.log(JSON.stringify(await res.json(), null, 2));
 }
@@ -493,14 +500,14 @@ function extractReport(result) {
 // Exits 0 on success, 1 on failure, 2 on timeout (with job_id so caller can resume).
 async function runResearch(query, options = {}) {
   // Default max wait: 540s (9 min). Must stay under the Bash tool's 10-min hard cap.
-  const maxWaitSeconds = Number(options.maxWaitSeconds || 540);
+  const maxWaitSeconds = Math.min(540, Math.max(1, Number(options.maxWaitSeconds) || 540));
   const initialWaitMs = 20_000;  // first poll after 20s
   const pollIntervalMs = 15_000; // then every 15s
 
   // 1. Submit
   const submitBody = buildSubmitBody(query, options);
   process.stderr.write(`[research] Submitting (effort=${submitBody.effort}${submitBody.expert_id ? `, expert=${submitBody.expert_id}` : ''}${submitBody.output_type ? `, output_type=${submitBody.output_type}` : ''})...\n`);
-  const submitted = await api('POST', `${basePath()}/research`, submitBody);
+  const submitted = await api('POST', `${basePath()}/${isV1() ? 'research' : 'run'}`, submitBody, options.idempotencyKey);
   const jobId = submitted.job_id || submitted.id;
   const slug = submitted.slug || jobId;
   if (!jobId) {
@@ -553,7 +560,7 @@ async function runResearch(query, options = {}) {
       return;
     }
 
-    if (status === 'failed') {
+    if (['failed', 'blocked', 'cancelled', 'canceled'].includes(status)) {
       console.error(`[research] Job failed: ${result.error || 'unknown error'}`);
       console.error(JSON.stringify(result, null, 2));
       process.exit(1);
@@ -627,6 +634,7 @@ function loadJsonSchema() {
 
 function commonOptions() {
   return {
+    idempotencyKey: flags['idempotency-key'],
     effort: flags.effort,
     depth: flags.depth,  // legacy
     maxWaitSeconds: flags['max-wait'],
@@ -642,7 +650,22 @@ function commonOptions() {
   };
 }
 
-switch (command) {
+module.exports = { api, basePath, buildSubmitBody, jobDetailPath, extractReport, parseArgs };
+
+if (require.main === module) switch (command) {
+  case 'capabilities':
+  case 'agents':
+  case 'agent':
+  case 'agent-update':
+  case 'agent-build':
+  case 'agent-build-status':
+  case 'workflow-generate':
+  case 'agent-apply':
+    if (command !== 'capabilities') requireV2(command);
+    require('./platform.js').runPlatform(command, args, flags, { api, base: GREP_API_BASE })
+      .then(result => console.log(JSON.stringify(result, null, 2)))
+      .catch(error => { console.error(error.message); process.exitCode = 1; });
+    break;
   case 'run':
     if (!args[0]) { console.error('Usage: grep-api.js run "query" [--effort=low|medium|high|build] [--max-wait=540] [--context-file=path] [--expert-id=...] [--output-type=...]'); process.exit(1); }
     runResearch(args.join(' '), commonOptions()).catch(e => { console.error(e.message); process.exit(1); });
@@ -706,7 +729,10 @@ switch (command) {
     getDiscovery().catch(e => { console.error(e.message); process.exit(1); });
     break;
   default:
-    console.error('GREP API Client');
+    console.error('Grep platform client');
+    console.error('Platform: capabilities | agents | agent <id> | agent-build --file=build.json | agent-build-status <id> | agent-update <id> --file=update.json');
+    console.error('          workflow-generate --file=workflow.json | agent-apply --file=manifest-request.json');
+    console.error('Use GREP_API_KEY or GREP_ACCESS_TOKEN for v2; --idempotency-key=<key> for retry-safe creates.');
     console.error('');
     console.error('Auth:');
     console.error('  Descope JWT or parcha-* API key — Bearer auth, read from ~/.grep/session.json');

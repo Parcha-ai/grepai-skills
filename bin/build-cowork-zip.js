@@ -19,6 +19,7 @@
  * Pure-JS — no system `zip`/`unzip` binaries needed. Works on macOS, Linux, Windows.
  */
 
+require('./sync-cowork');
 const fs = require('fs');
 const path = require('path');
 
@@ -92,7 +93,7 @@ if (missing.length > 0) {
 // 3. Copy scripts into the skill directory (so they're zipped under research/scripts/)
 // ---------------------------------------------------------------------------
 
-const scriptFiles = ['auth.js', 'billing.js', 'grep-api.js', 'update-check.js'];
+const scriptFiles = ['auth.js', 'billing.js', 'grep-api.js', 'platform.js', 'update-check.js'];
 
 fs.mkdirSync(SCRIPTS_DEST, { recursive: true });
 

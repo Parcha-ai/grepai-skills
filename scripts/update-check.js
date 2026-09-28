@@ -4,13 +4,13 @@
  *
  * Called at session start or before first skill use.
  * Checks npm for a newer version, throttled to once per hour.
- * If an update is available, runs `npx grep-research-skills` to update in place.
+ * Reports updates by default; --update explicitly installs the published release.
  *
  * Exit 0 always — errors must never block a session.
  *
  * Usage:
- *   node update-check.js          # Check and update if needed
- *   node update-check.js --check  # Check only, print status, don't update
+ *   node update-check.js          # Check only
+ *   node update-check.js --update # Explicitly install the latest release
  */
 
 const fs = require('fs');
@@ -79,7 +79,7 @@ function compareVersions(a, b) {
 }
 
 async function main() {
-  const checkOnly = process.argv.includes('--check');
+  const checkOnly = !process.argv.includes('--update');
 
   if (!checkOnly && isThrottled()) {
     console.log(JSON.stringify({ status: 'throttled', message: 'Checked recently, skipping' }));

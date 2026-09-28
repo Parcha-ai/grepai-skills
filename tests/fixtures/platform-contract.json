@@ -1,0 +1,50 @@
+{
+  "verifiedOn": "2026-09-28",
+  "source": "https://api.grep.ai/api/v2/openapi.json",
+  "paths": {
+    "/api/v2/experts/apply": {
+      "post": {}
+    },
+    "/api/v2/experts/build": {
+      "post": {}
+    },
+    "/api/v2/experts/build/{job_id}": {
+      "get": {}
+    },
+    "/api/v2/experts/custom": {
+      "get": {}
+    },
+    "/api/v2/experts/generate-workflow": {
+      "post": {}
+    },
+    "/api/v2/experts/{expert_id}": {
+      "delete": {},
+      "get": {},
+      "patch": {}
+    },
+    "/api/v2/run": {
+      "get": {},
+      "post": {}
+    },
+    "/api/v2/run/{job_id_or_slug}": {
+      "get": {}
+    }
+  },
+  "runProperties": [
+    "attachment_ids",
+    "benchmark_mode",
+    "context",
+    "effort",
+    "expert_id",
+    "harness_sha",
+    "json_schema",
+    "max_cost_usd",
+    "model",
+    "question",
+    "referenceJobs",
+    "render_rich_report",
+    "response_language",
+    "runtime",
+    "webhook_url"
+  ]
+}
