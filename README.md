@@ -5,7 +5,7 @@ Teach your coding agent to use Grep: discover existing agents, turn repetitive w
 ## Install this revision
 
 ```bash
-git clone https://github.com/Parcha-ai/grep-skills.git ~/.grep-research-skills
+git clone https://github.com/Parcha-ai/grepai-skills.git ~/.grep-research-skills
 cd ~/.grep-research-skills
 ./setup
 ```

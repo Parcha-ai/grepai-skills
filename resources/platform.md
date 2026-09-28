@@ -12,7 +12,7 @@ Prefer an already connected Grep MCP server. URL: `https://api.grep.ai/api/v2/mc
 
 For REST, prefer `GREP_API_KEY` in the environment. `GREP_ACCESS_TOKEN` accepts an OAuth access token scoped to this deployment's v2 resource. Do not print these values. An email-OTP session JWT is not a v2 OAuth token; the legacy CLI research path can use v1 for those sessions, but platform creation/configuration requires v2 auth. Never downgrade a failing v2 write to v1 automatically.
 
-The legacy package name/install directory remains `grep-research-skills` / `~/.grep-research-skills` for compatibility. The source repository is `Parcha-ai/grep-skills`.
+The legacy package name/install directory remains `grep-research-skills` / `~/.grep-research-skills` for compatibility. The source repository is `Parcha-ai/grepai-skills`.
 
 ## Contract
 
