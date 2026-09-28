@@ -1,39 +1,17 @@
 ---
 name: grep-status
-description: Check GREP authentication status, view recent research jobs, or check on a specific job. Use when the user asks about their GREP account, wants to see past research, or check on a running job.
+description: "Check Grep authentication, current account usage, and existing run status without starting new work."
 ---
 
-# GREP Status
+# Account and run status
 
-Check authentication and job status.
-
-## Resolve the script path
-
-```bash
-SCRIPTS_DIR="$(dirname "$(dirname "$(dirname "$(readlink -f "${CLAUDE_SKILL_DIR}/SKILL.md")")")")/scripts"
-```
-
-## Check Authentication
+Read [platform setup and API contract](../../resources/platform.md) before the first platform call. Resolve `SCRIPTS_DIR` as described there. Prefer the connected Grep MCP tools when they expose the needed operation; the CLI is the REST fallback.
 
 ```bash
 node "$SCRIPTS_DIR/auth.js" status
-```
-
-Reports whether the user is authenticated and session health.
-
-## Check a Specific Job
-
-```bash
-node "$SCRIPTS_DIR/grep-api.js" status <job_id>
-```
-
-## List Recent Jobs
-
-```bash
 node "$SCRIPTS_DIR/grep-api.js" jobs
+node "$SCRIPTS_DIR/grep-api.js" status RUN_ID
 ```
+For an MCP connection, use `quota_get`, `billing_usage_get`, and `research_list` where available. Account status should reflect the selected deployment and credentials. The legacy auth status command checks its saved session, not the MCP connection or environment API key.
 
-## Present Status Clearly
-
-- If not authenticated or session expired: **automatically invoke `/grep-login`** — don't just suggest it. Run the login flow, then continue with the status check once authenticated.
-- If checking a job: report status and results if completed
+Summarize actual status, quota/usage if returned, and relevant running work. A missing local session does not mean an authenticated MCP connection is logged out. Do not start test runs to check status.

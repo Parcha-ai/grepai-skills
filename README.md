@@ -1,257 +1,72 @@
-# GREP Research Skills
+# Grep platform skills
 
-Give your AI agent deep research superpowers. GREP Research Skills connects Claude Code, Cowork, and OpenClaw to [GREP](https://grep.ai) — the #1 deep research engine.
+Teach your coding agent to use Grep: discover existing agents, turn repetitive work into reusable agents, run them on new inputs, and improve repeated execution with workflows and code. Research, documents, apps, slides, and spreadsheets remain part of the library.
 
-> The wallet/PAYG gateway path (Stripe Link, Base USDC, `Receipt pi_xxx` auth, x402 funding) lives on the [`mpp-gateway-future`](https://github.com/Parcha-ai/grep-research-skills/tree/mpp-gateway-future) branch. It returns once the backend's MPP gateway is GA. Until then this repo targets the v2 API only — Descope JWT or `grp_*` API key.
-
-## Install
+## Install this revision
 
 ```bash
-npx grep-research-skills
+git clone https://github.com/Parcha-ai/grepai-skills.git ~/.grep-research-skills
+cd ~/.grep-research-skills
+./setup
 ```
 
-That's it. Works with Claude Code, Cowork, and OpenClaw — the installer auto-detects your environment.
+For an unreleased branch, check out that branch before setup. The published npm package remains `grep-research-skills` for compatibility; `npx grep-research-skills` installs the published release, not unmerged source changes. This revision adds a `grep-skills` executable alias in the same package. Node 18+ is required.
 
-**Requirements:** Node.js 18+
+The installer links skills for Claude Code and detects Codex, Cursor, and OpenClaw installations. It preserves real user-owned skill directories. Connect Grep through your client's MCP setup at `https://api.grep.ai/api/v2/mcp`, or set `GREP_API_KEY` securely for REST. Do not commit API keys in project configuration.
 
-### Alternative: Cowork / Claude.ai
+Start with `/grep-platform`, or ask: “Agentify the company research procedure we have been repeating.”
 
-For Cowork and Claude.ai, GREP is packaged as a **single `/research` skill** (instead of 8 individual skills). One router skill handles everything — it reads the right reference file based on your intent.
+## Main workflows
 
-1. Download the latest zip from [Releases](https://github.com/parcha-ai/grep-research-skills/releases/latest)
-2. In Cowork, go to **Settings → Plugins** and click **Add Plugin**
-3. Upload `grep-research-skills-v0.2.0.zip`
-4. The `/research` skill appears in your org — all team members get access
+| Skill | Purpose |
+|---|---|
+| `grep-platform` | Route platform tasks and onboarding |
+| `grep-agentify` | Recognize repeated procedures, reuse or build an agent, test it, save a project reference |
+| `grep-agents` | Discover, build, inspect, activate, and run agents |
+| `grep-optimize` | Use run evidence to propose and validate workflows/code that reduce repeated model work |
+| `grep-mcp` | Connect the coding agent and preserve an example prompt during onboarding |
+| `research`, `quick-research`, `ultra-research` | One-off sourced research at different effort levels |
+| `grep-build-app`, `grep-build-slidedeck`, `grep-build-spreadsheet` | Source-backed deliverables |
+| `grep-domain-expert`, `grep-with-context`, `grep-continue`, `grep-research-workflow` | Specialized agents, files, follow-ups, and dependent work |
+| `grep-plan`, `grep-skill-creator` | Research-informed planning and local skill authoring |
+| `grep-login`, `grep-status`, `grep-upgrade` | Authentication, usage, and billing |
 
-**Why one skill?** Claude Code discovers skills as individual symlinks, so 16 skills = better auto-triggering. Cowork/Claude.ai loads skills from a zip, where a single well-described router skill with reference files is more practical and avoids cluttering the skill list.
+Repetition detection uses context available to the coding agent. It is not an always-on watcher. Cross-session reuse comes from a project `.grep/agents.json` reference, not hidden transcript access. A suggestion does not authorize a paid batch, schedule, purchase, or public sharing. Existing user authorization remains valid.
 
-**Building the zip from source:**
+## Current platform contract
+
+[Platform reference](resources/platform.md) records the verified contract and auth differences. Fetch live capabilities with:
 
 ```bash
-npm install            # one-time, pulls archiver (the only devDependency)
-npm run build:cowork   # → dist/grep-research-skills-v0.2.0.zip
+node scripts/grep-api.js capabilities
+node scripts/grep-api.js agents
+node scripts/grep-api.js agent-build --file=build.json
+node scripts/grep-api.js agent-build-status BUILD_ID
+node scripts/grep-api.js research "Research Acme" --expert-id=AGENT_ID --idempotency-key=UNIQUE_RUN_KEY
+node scripts/grep-api.js result RUN_ID --no-wait
 ```
 
-Pure-JS — no system `zip` binary required. Works on macOS, Linux, and Windows.
+`build.json` contains `domain`, optional `context` (up to 5,000 characters), and `depth` (`standard` or `deep`). Build success may register a draft: inspect its lifecycle and activate it before testing. See `skills/grep-agents/SKILL.md`.
 
-**Required: Allow network access.** In your Cowork org settings under **Code execution → Allow network egress**, add these domains to the allowlist:
+Production verified on 2026-09-28 exposes `/api/v2/run`; creation/configuration still uses `/api/v2/experts/*`. MCP retains `research_*` / `expert_*` names. A public optimize endpoint is not currently advertised. Workflow generation produces a candidate; it is not proof of lower cost. The library checks deployment capabilities and never claims a proposed optimization API is live.
 
-```
-api.grep.ai
-preview-api.grep.ai
-api.descope.com
-```
+API keys or v2 resource-scoped OAuth tokens support the platform. `GREP_ACCESS_TOKEN` supplies such an OAuth token. Legacy email-OTP sessions retain v1 research compatibility but cannot masquerade as v2 OAuth credentials. `GREP_API_BASE` selects the API host; `GREP_UI_BASE` can select the matching UI host. Preserve IDs after timeouts and resume existing work.
 
-(Add `preview-api.grep.ai` only if you're testing against the preview deployment via `GREP_API_BASE`.)
-
-Without this, the sandbox can't reach the GREP API or authenticate via Descope.
-
-### Alternative: Claude Code Plugin Marketplace
-
-```
-/install-plugin parcha-ai/grep-research-skills
-```
-
-### Alternative: Git Clone
+## Cowork / Claude.ai
 
 ```bash
-git clone https://github.com/parcha-ai/grep-research-skills.git ~/.grep-research-skills && ~/.grep-research-skills/setup
+npm ci
+npm run build:cowork
 ```
 
-## What You Get
+Upload `dist/grep-research-skills-v0.3.0.zip` using the client's skill-upload interface. The archive retains the `research` entrypoint for compatibility but routes the whole platform. References are generated from `skills/`, and scripts/resources are bundled. It needs permitted network access to the configured Grep API and auth provider.
 
-### Claude Code (16 individual skills)
-
-| Skill | Triggers on | What it does |
-|---|---|---|
-| `/grep-login` | "log in to grep", "grep auth" | Authenticate via email OTP or API key |
-| `/grep-status` | "grep status", "what plan am I on" | Account status + recent jobs |
-| `/grep-upgrade` | "upgrade grep", "buy more credits" | Choose / change subscription plan (Free / Pro / Ultra / PAYG) |
-| `/grep-skill-creator` | "make a grep skill" | Create a new SKILL.md for any agent skill, powered by deep research |
-| `/grep-plan` | "plan a grep research", "research-informed plan" | Research best practices + your codebase context before you `/plan` |
-| `/quick-research` | "fast research / lookup" | ~25s sourced one-liner — version checks, API endpoints, quick lookups |
-| `/research` | "research X" (default tier) | ~5 min comprehensive report with citations — the default for most tasks |
-| `/ultra-research` | "deep / exhaustive research on X" | Up to 1hr investigation — security audits, legal, ecosystem surveys |
-| **`/grep-mcp`** | "install grep MCP", "grep as MCP server" | Wire Grep into `.mcp.json` as 4 native MCP tools |
-| **`/grep-domain-expert`** | "use the legal/medical/patent/... expert" | Route to one of 27 public domain experts (legal, medical, financial, real estate, supply chain, maritime, etc.) |
-| **`/grep-build-app`** | "build me an interactive app for X" | Interactive HTML web apps via the app-builder expert (effort=build, ~$2, 10-15min) |
-| **`/grep-build-slidedeck`** | "make me a slidedeck about X" | Research-backed HTML slidedeck with arrow-key nav + PDF export |
-| **`/grep-build-spreadsheet`** | "build a spreadsheet of X" | Sortable HTML spreadsheet with CSV export |
-| **`/grep-research-workflow`** | "investigate X and then make Y" | Multi-step chain: orient → deep dive → optional build artifact |
-| **`/grep-with-context`** | "research using these PDFs" | Upload files as research inputs (PDFs, CSVs, images) |
-| **`/grep-continue`** | "follow up on that research" | Continue an existing job with a new question, inheriting prior research context |
-
-**Bold rows are new in 0.2.0.**
-
-### Cowork / Claude.ai (single consolidated skill)
-
-| Skill | Description |
-|-------|-------------|
-| `/research` | All features in one skill — routes to the right workflow (deep, quick, ultra, plan, skill-creator, login, upgrade, status) based on what you ask for |
-
-## Getting Started
-
-1. **Install** using `npx grep-research-skills`
-2. **Authenticate** by running `/grep-login` in your AI agent
-3. **Research** anything with `/research "your topic"`
-
-**Pick the right tier.** `/quick-research` is for one-liner answers, `/research` is the default for most tasks, and `/ultra-research` is reserved for heavy investigations that genuinely need exhaustive coverage (and can take up to an hour).
-
-For domain-specific work (legal, medical, patent, etc.), reach for `/grep-domain-expert`. For deliverables (decks, apps, spreadsheets), use the matching `/grep-build-*` skill. For multi-step research with a deliverable at the end, use `/grep-research-workflow`.
-
-## Authentication (v2)
-
-All requests use `Authorization: Bearer <token>` where `<token>` is either a Descope-managed session JWT or a long-lived `grp_*` API key. Both are stored in `~/.grep/session.json` (mode 0600) and read transparently by `scripts/grep-api.js`.
+## Development
 
 ```bash
-# Email OTP (interactive — best for human users)
-/grep-login
-
-# API key (headless / CI — best for agents and scripts)
-node ~/.grep-research-skills/scripts/auth.js set-api-key grp_xxx
+npm test
+npm run sync:cowork
+npm run build:cowork
 ```
 
-Sessions auto-refresh. Get a `grp_*` key at https://grep.ai/api-keys. Bills against your subscription tier (Free / Pro / Ultra / PAYG) — run `/grep-status` to see your current plan and remaining quota.
-
-### Pointing at preview / staging
-
-Set `GREP_API_BASE` to override the default `https://api.grep.ai`:
-
-```bash
-export GREP_API_BASE=https://preview-api.grep.ai   # early-access / staging
-# OR
-export GREP_API_BASE=https://api.grep.ai           # production (default)
-```
-
-The script auto-derives the matching UI host for printed report links (`api.grep.ai → grep.ai`, `preview-api.grep.ai → preview.grep.ai`). Override with `GREP_UI_BASE` if your deployment uses a different pattern.
-
-## Direct CLI Use
-
-```bash
-node scripts/grep-api.js experts                            # 27-expert catalog (free, no auth)
-node scripts/grep-api.js run "What is Anthropic?" --effort=low
-node scripts/grep-api.js run "compare LLM costs" --output-type=spreadsheet --max-wait=1800
-node scripts/grep-api.js files <slug>                       # workspace files for a job
-node scripts/grep-api.js timeline <slug>                    # message timeline
-node scripts/grep-api.js continue <slug> "follow-up"
-node scripts/grep-api.js upload report.pdf                  # returns attachment_id
-```
-
-## Discovery
-
-The v2 API publishes its contract via OpenAPI. Set `GREP_API_BASE` once and use it everywhere:
-
-```bash
-export GREP_API_BASE=https://api.grep.ai             # production
-# OR
-export GREP_API_BASE=https://preview-api.grep.ai     # preview / staging
-
-curl "$GREP_API_BASE/openapi.json"                       # v2 OpenAPI
-curl "$GREP_API_BASE/api/v2/experts"                     # 27-expert list (free, no auth)
-curl "$GREP_API_BASE/.well-known/agent-onboarding.md"    # markdown agent guide
-```
-
-**Agents bootstrapping cold** should fetch `$GREP_API_BASE/.well-known/agent-onboarding.md` first — it describes the v2 surface end-to-end with copy-paste examples.
-
-This repo also publishes a [skill manifest](.well-known/skill-manifest.json) for agent discovery.
-
-## How It Works
-
-GREP Research Skills uses headless email authentication (powered by Descope) — no browser needed. Works in terminals, SSH sessions, and headless environments.
-
-**`/quick-research` and `/research`** are blocking: the skill submits the job, polls with backoff, and returns the finished report in a single call. Claude Code's bash tool caps at 10 minutes, so `/research` is bounded to a 9-minute server-side wait. If a deep job overshoots, the skill exits with a `slug` for later retrieval.
-
-**`/ultra-research` is different.** Ultra-deep jobs can run up to 1 hour, which exceeds the bash 10-minute cap. The skill submits the job, returns the `slug` immediately, and polls on 5-minute intervals across multiple agent turns. You can keep working while it runs; the agent checks back periodically and presents the report when ready.
-
-**`/grep-build-*` and `/grep-with-context`** use Monitor with longer timeouts (up to 30 min for build jobs).
-
-## Authentication
-
-```bash
-# Authenticate (sends code to your email)
-node ~/.grep-research-skills/scripts/auth.js login you@email.com
-
-# Check status
-node ~/.grep-research-skills/scripts/auth.js status
-
-# Get token (for scripting)
-node ~/.grep-research-skills/scripts/auth.js token
-```
-
-Sessions are stored in `~/.grep/session.json` and auto-refresh.
-
-## For OpenClaw Users
-
-The installer auto-detects OpenClaw and creates symlinks in `~/.openclaw/skills/`.
-
-You can also publish to ClawHub or install skills manually:
-
-```bash
-# Drop into OpenClaw's skill directory
-cp -r ~/.grep-research-skills/skills/* ~/.openclaw/skills/
-```
-
-## Project Structure
-
-```
-grep-research-skills/
-├── .claude-plugin/
-│   ├── plugin.json                # Claude Code plugin manifest
-│   └── marketplace.json           # Claude Code marketplace listing
-├── .well-known/
-│   └── skill-manifest.json        # Agent discovery manifest
-├── .github/
-│   └── workflows/
-│       └── sync-experts.yml       # Nightly drift check vs live /api/v2/experts
-├── skills/                        # Claude Code: 16 individual skills
-│   ├── research/SKILL.md          # Deep research (effort=medium, ~5 min)
-│   ├── quick-research/SKILL.md    # Fast fact check (effort=low, ~25s)
-│   ├── ultra-research/SKILL.md    # Exhaustive research (effort=high, up to 1 hr)
-│   ├── grep-plan/SKILL.md         # Research-informed planning
-│   ├── grep-skill-creator/SKILL.md  # Research-powered skill generator
-│   ├── grep-login/SKILL.md        # Authentication
-│   ├── grep-upgrade/SKILL.md      # Plan selection & Stripe checkout
-│   ├── grep-status/SKILL.md       # Status & job checking
-│   ├── grep-mcp/SKILL.md          # Wire Grep into .mcp.json (NEW in 0.2.0)
-│   ├── grep-domain-expert/SKILL.md  # Route to a public expert (NEW)
-│   ├── grep-build-app/SKILL.md    # Interactive HTML apps (NEW)
-│   ├── grep-build-slidedeck/SKILL.md  # HTML slidedecks (NEW)
-│   ├── grep-build-spreadsheet/SKILL.md  # Sortable spreadsheets (NEW)
-│   ├── grep-research-workflow/SKILL.md  # Multi-step chains (NEW)
-│   ├── grep-with-context/SKILL.md   # Research with attached files (NEW)
-│   └── grep-continue/SKILL.md     # Continue existing jobs (NEW)
-├── dist/cowork/                   # Cowork/Claude.ai: single consolidated skill
-│   └── research/
-│       ├── SKILL.md               # Router — routes intent to reference files
-│       ├── references/            # Workflow details for each intent
-│       │   ├── deep.md
-│       │   ├── quick.md
-│       │   ├── ultra.md
-│       │   ├── plan.md
-│       │   ├── skill-creator.md
-│       │   ├── login.md
-│       │   ├── upgrade.md
-│       │   └── status.md
-│       └── scripts/               # Bundled at build time by build-cowork-zip.js
-├── resources/
-│   ├── experts.md                 # 27-expert catalog (drift-tracked)
-│   ├── intent_map.md              # Phrase → API fields lookup
-│   ├── slidedeck_schema.json      # JSON Schema for structured deck output
-│   ├── spreadsheet_schema.json    # JSON Schema for structured table output
-│   └── chaining_examples.md       # Multi-step workflow recipes
-├── scripts/
-│   ├── auth.js                    # Descope OTP headless auth
-│   ├── grep-api.js                # GREP API client (v2)
-│   ├── billing.js                 # Billing & Stripe checkout client
-│   └── update-check.js            # Plugin auto-update
-├── bin/
-│   ├── install.js                 # npx installer
-│   └── build-cowork-zip.js        # Builds the Cowork/Claude.ai zip release
-├── setup                          # Shell installer (git clone fallback)
-├── package.json
-└── README.md
-```
-
-## License
-
-MIT — Parcha Labs, Inc.
+The Node test suite uses mocked HTTP and temporary installation roots; it creates no remote agents or paid runs. Source skills are canonical. Do not edit generated Cowork references directly. Version numbers in npm/plugin/discovery metadata move together; publishing remains a separate release step. `scripts/update-check.js` checks only by default; use `--update` to explicitly update from npm.
