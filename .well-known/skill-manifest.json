@@ -1,9 +1,9 @@
 {
   "$schema": "https://parcha-ai.github.io/skill-manifest.schema.json",
-  "name": "grep-research-skills",
+  "name": "grepai-skills",
   "version": "0.3.0",
   "homepage": "https://github.com/Parcha-ai/grepai-skills",
-  "install": "git clone https://github.com/Parcha-ai/grepai-skills ~/.grep-research-skills && ~/.grep-research-skills/setup",
+  "install": "git clone https://github.com/Parcha-ai/grepai-skills ~/.grepai-skills && ~/.grepai-skills/setup",
   "skills": [
     {
       "name": "grep-login",

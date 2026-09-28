@@ -1,6 +1,6 @@
 # Repository guidance
 
-Grep platform skill library. Read README.md and resources/platform.md. Keep the existing npm/plugin identity `grep-research-skills` for compatibility; the repository is `Parcha-ai/grepai-skills`.
+Grep platform skill library. Read README.md and resources/platform.md. Use `grepai-skills` consistently for the npm package, executable, plugin, and release archives; the repository is `Parcha-ai/grepai-skills`.
 
 Source skills live in skills/. Generate Cowork references via npm run sync:cowork; never maintain two independent sets of instructions. Scripts use Node built-ins; archiver is a development-only packaging dependency.
 

@@ -1,5 +1,5 @@
 {
-  "name": "grep-research-skills",
+  "name": "grepai-skills",
   "version": "0.3.0",
   "description": "Use the Grep platform: build reusable agents, agentify repetitive work, run research, and improve workflows.",
   "author": {
@@ -24,8 +24,7 @@
     "claude"
   ],
   "bin": {
-    "grep-research-skills": "./bin/install.js",
-    "grep-skills": "./bin/install.js"
+    "grepai-skills": "./bin/install.js"
   },
   "files": [
     "bin/",

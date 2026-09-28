@@ -8,7 +8,7 @@
  *   dist/cowork/research/scripts/*.js      (bundled scripts)
  *
  * Outputs:
- *   dist/grep-research-skills-v{version}.zip
+ *   dist/grepai-skills-v{version}.zip
  *
  * Usage:
  *   npm run build:cowork
@@ -54,7 +54,7 @@ if (!version) {
   process.exit(1);
 }
 
-console.log(`Building grep-research-skills v${version} for Cowork...`);
+console.log(`Building grepai-skills v${version} for Cowork...`);
 
 // ---------------------------------------------------------------------------
 // 2. Verify the consolidated skill files exist
@@ -114,7 +114,7 @@ for (const file of scriptFiles) {
 //    parsing, which produces different output on Linux vs macOS).
 // ---------------------------------------------------------------------------
 
-const zipName = `grep-research-skills-v${version}.zip`;
+const zipName = `grepai-skills-v${version}.zip`;
 const zipPath = path.join(DIST_DIR, zipName);
 
 fs.mkdirSync(DIST_DIR, { recursive: true });

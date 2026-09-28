@@ -1,5 +1,5 @@
 {
-  "name": "grep-research-skills",
+  "name": "grepai-skills",
   "owner": {
     "name": "Parcha Labs",
     "url": "https://grep.ai"
@@ -9,7 +9,7 @@
   },
   "plugins": [
     {
-      "name": "grep-research-skills",
+      "name": "grepai-skills",
       "source": "./",
       "version": "0.3.0",
       "description": "Grep platform skills for reusable agents, workflows, and research.",

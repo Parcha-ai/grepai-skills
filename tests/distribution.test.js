@@ -14,7 +14,7 @@ test('installer discovers new skills, preserves user directories, and refreshes 
   execFileSync(process.execPath,args,opts);execFileSync(process.execPath,args,opts);
   for(const host of ['.claude','.codex','.cursor','.openclaw']) assert.ok(fs.existsSync(path.join(home,host,'skills/grep-agentify/SKILL.md')));
   assert.equal(fs.readFileSync(path.join(owned,'SKILL.md'),'utf8'),'user-owned');
-  assert.ok(fs.existsSync(path.join(home,'.grep-research-skills/scripts/platform.js')));
+  assert.ok(fs.existsSync(path.join(home,'.grepai-skills/scripts/platform.js')));
  }finally{fs.rmSync(home,{recursive:true,force:true})}
 });
 test('all skills are discoverable and consolidated references resolve',()=>{
@@ -33,4 +33,17 @@ test('all skills are discoverable and consolidated references resolve',()=>{
  checkLinks(path.join(root,'dist/cowork/research/SKILL.md'));
  for(const file of fs.readdirSync(path.join(root,'dist/cowork/research/references')))checkLinks(path.join(root,'dist/cowork/research/references',file));
  const version=require('../package.json').version;assert.equal(manifest.version,version);assert.equal(require('../.claude-plugin/plugin.json').version,version);assert.equal(require('../package-lock.json').version,version);
+});
+test('all published identities and installer entrypoint use grepai-skills',()=>{
+ const pkg=require('../package.json');
+ assert.equal(pkg.name,'grepai-skills');
+ assert.deepEqual(pkg.bin,{'grepai-skills':'./bin/install.js'});
+ assert.equal(require('../package-lock.json').name,pkg.name);
+ assert.equal(require('../package-lock.json').packages[''].name,pkg.name);
+ assert.deepEqual(require('../package-lock.json').packages[''].bin,{'grepai-skills':'bin/install.js'});
+ assert.equal(require('../.claude-plugin/plugin.json').name,pkg.name);
+ const marketplace=require('../.claude-plugin/marketplace.json');
+ assert.equal(marketplace.name,pkg.name);
+ assert.equal(marketplace.plugins[0].name,pkg.name);
+ assert.equal(require('../.well-known/skill-manifest.json').name,pkg.name);
 });

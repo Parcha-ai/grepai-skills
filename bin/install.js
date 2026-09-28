@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 /**
- * grep-research-skills installer
+ * grepai-skills installer
  *
- * Invoked via: npx grep-research-skills
+ * Invoked via: npx grepai-skills
  *
- * Copies skills + scripts to a persistent location (~/.grep-research-skills/),
+ * Copies skills + scripts to a persistent location (~/.grepai-skills/),
  * then creates symlinks so Claude Code, Cowork, and OpenClaw can discover them.
  *
  * Re-running updates in place.
@@ -15,7 +15,7 @@ const path = require('path');
 const { execSync } = require('child_process');
 
 const HOME = process.env.GREP_INSTALL_HOME || process.env.HOME || process.env.USERPROFILE;
-const INSTALL_DIR = path.join(HOME, '.grep-research-skills');
+const INSTALL_DIR = path.join(HOME, '.grepai-skills');
 const GREP_DIR = path.join(HOME, '.grep');
 const SESSION_FILE = path.join(GREP_DIR, 'session.json');
 const GREP_BASE_URL = process.env.GREP_BASE_URL || 'https://grep.ai';
@@ -82,7 +82,7 @@ function main() {
   }
 
   // 2. Copy skills + scripts to persistent location
-  log('Installing to ~/.grep-research-skills/ ...');
+  log('Installing to ~/.grepai-skills/ ...');
 
   // Copy scripts/
   copyDirSync(path.join(PKG_ROOT, 'scripts'), path.join(INSTALL_DIR, 'scripts'));
@@ -113,7 +113,7 @@ function main() {
     fs.writeFileSync(path.join(GREP_DIR, 'installed-version'), pluginJson.version);
   } catch {}
 
-  ok('Copied skills and scripts to ~/.grep-research-skills/');
+  ok('Copied skills and scripts to ~/.grepai-skills/');
 
   // 3. Ensure ~/.grep directory for session storage
   if (!fs.existsSync(GREP_DIR)) {
@@ -128,7 +128,7 @@ function main() {
 
   let installedTo = [];
 
-  // Claude Code / Cowork: ~/.claude/skills/<skill-name> -> ~/.grep-research-skills/skills/<skill-name>
+  // Claude Code / Cowork: ~/.claude/skills/<skill-name> -> ~/.grepai-skills/skills/<skill-name>
   const claudeSkills = path.join(HOME, '.claude', 'skills');
   const hasClaude = fs.existsSync(path.join(HOME, '.claude')) || process.env.CLAUDE_CODE;
   if (hasClaude || true) { // Always install for Claude Code — it's the primary target
@@ -151,7 +151,7 @@ function main() {
     installedTo.push('Claude Code', 'Cowork');
   }
 
-  // OpenClaw: ~/.openclaw/skills/<skill-name> -> ~/.grep-research-skills/skills/<skill-name>
+  // OpenClaw: ~/.openclaw/skills/<skill-name> -> ~/.grepai-skills/skills/<skill-name>
   const openclawSkills = path.join(HOME, '.openclaw', 'skills');
   const hasOpenclaw = fs.existsSync(path.join(HOME, '.openclaw'));
   try {

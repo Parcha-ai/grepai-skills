@@ -5,12 +5,12 @@ Teach your coding agent to use Grep: discover existing agents, turn repetitive w
 ## Install this revision
 
 ```bash
-git clone https://github.com/Parcha-ai/grepai-skills.git ~/.grep-research-skills
-cd ~/.grep-research-skills
+git clone https://github.com/Parcha-ai/grepai-skills.git ~/.grepai-skills
+cd ~/.grepai-skills
 ./setup
 ```
 
-For an unreleased branch, check out that branch before setup. The published npm package remains `grep-research-skills` for compatibility; `npx grep-research-skills` installs the published release, not unmerged source changes. This revision adds a `grep-skills` executable alias in the same package. Node 18+ is required.
+The package and executable are both `grepai-skills`. After this version is published, install it with `npx grepai-skills`. Until then, check out this branch and run `./setup` from source. Node 18+ is required.
 
 The installer links skills for Claude Code and detects Codex, Cursor, and OpenClaw installations. It preserves real user-owned skill directories. Connect Grep through your client's MCP setup at `https://api.grep.ai/api/v2/mcp`, or set `GREP_API_KEY` securely for REST. Do not commit API keys in project configuration.
 
@@ -59,7 +59,7 @@ npm ci
 npm run build:cowork
 ```
 
-Upload `dist/grep-research-skills-v0.3.0.zip` using the client's skill-upload interface. The archive retains the `research` entrypoint for compatibility but routes the whole platform. References are generated from `skills/`, and scripts/resources are bundled. It needs permitted network access to the configured Grep API and auth provider.
+Upload `dist/grepai-skills-v0.3.0.zip` using the client's skill-upload interface. The archive retains the `research` entrypoint for compatibility but routes the whole platform. References are generated from `skills/`, and scripts/resources are bundled. It needs permitted network access to the configured Grep API and auth provider.
 
 ## Development
 

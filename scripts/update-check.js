@@ -21,9 +21,9 @@ const HOME = process.env.HOME || process.env.USERPROFILE;
 const GREP_DIR = path.join(HOME, '.grep');
 const VERSION_FILE = path.join(GREP_DIR, 'installed-version');
 const THROTTLE_FILE = path.join(GREP_DIR, 'last-update-check');
-const INSTALL_DIR = path.join(HOME, '.grep-research-skills');
+const INSTALL_DIR = path.join(HOME, '.grepai-skills');
 const THROTTLE_SECONDS = 3600; // 1 hour
-const PKG_NAME = 'grep-research-skills';
+const PKG_NAME = 'grepai-skills';
 
 function getInstalledVersion() {
   try {
