@@ -2,7 +2,15 @@
 
 Teach your coding agent to use Grep: discover existing agents, turn repetitive work into reusable agents, run them on new inputs, and improve repeated execution with workflows and code. Research, documents, apps, slides, and spreadsheets remain part of the library.
 
-## Install this revision
+## Install the published release
+
+```bash
+npx grep-research-skills@latest
+```
+
+`grep-research-skills` is the npm package this repository publishes; its version is the `version` in `package.json` once a release ships. Check what is published with `npm view grep-research-skills version`. A second npm package, `grepai-skills`, was published from an earlier revision of this repository; it is not the package `package.json` names, so do not expect releases there. Neither 0.2.0 build contains the platform workflows (`grep-platform`, `grep-agentify`, `grep-agents`, `grep-optimize`); they are in the 0.3.0 source. Node 18+ is required.
+
+## Install this revision from source
 
 ```bash
 git clone https://github.com/Parcha-ai/grepai-skills.git ~/.grep-research-skills
@@ -10,7 +18,7 @@ cd ~/.grep-research-skills
 ./setup
 ```
 
-For an unreleased branch, check out that branch before setup. The published npm package remains `grep-research-skills` for compatibility; `npx grep-research-skills` installs the published release, not unmerged source changes. This revision adds a `grep-skills` executable alias in the same package. Node 18+ is required.
+This installs the checked-out source, including unreleased changes. For an unreleased branch, check out that branch before setup. This revision adds a `grep-skills` executable alias in the same package.
 
 The installer links skills for Claude Code and detects Codex, Cursor, and OpenClaw installations. It preserves real user-owned skill directories. Connect Grep through your client's MCP setup at `https://api.grep.ai/api/v2/mcp`, or set `GREP_API_KEY` securely for REST. Do not commit API keys in project configuration.
 
